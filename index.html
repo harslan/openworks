@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Community Day Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday, warm and practical: a professor who sits down with a shop owner
+   IDEA a work order pinned by the register: the week's hours, the one job to fix, the day's schedule
+   PICTURE the live week ledger (task bars, biggest one in brick) and the one-day plan with hanging times
+   COLOUR white ground, black ink, brick #c8371e accent, stone #e7e4df panels; night #171513
+   TYPE Schibsted Grotesk 700 titles + Schibsted Grotesk text
+   LAYOUT laptop: controls left, ledger + plan right; 720px: same two columns tighter; phone: title, ledger, controls, plan */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#171513);--ink:light-dark(#14161a,#f1eee9);--soft:light-dark(#5d5a55,#b9b3aa);--stone:light-dark(#e7e4df,#24211d);--panel:light-dark(#f6f4f1,#1f1c19);--line:light-dark(#d6d1c9,#3a3530);--brick:light-dark(#c8371e,#ff7a5c);--brickbg:light-dark(#fbe7e2,#3a1d16);--bar:light-dark(#b9b2a7,#5e574f)}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 "Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:clip}
+.band{padding-block:clamp(28px,4vw,56px);padding-left:max(5vw,16px,env(safe-area-inset-left,0px));padding-right:max(5vw,16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto}
+.top{background:var(--stone);padding-bottom:clamp(20px,3vw,36px)}
+.who{font-size:15px;color:var(--soft);margin:0 0 10px}
+.who b{color:var(--ink);font-weight:600}
+h1{font-size:clamp(32px,4.6vw,50px);line-height:1.05;letter-spacing:-.02em;margin:0;text-wrap:balance;max-width:20ch}
+.lede{font-size:17px;max-width:62ch;margin:14px 0 0}
+h2{font-size:clamp(24px,2.6vw,32px);line-height:1.1;letter-spacing:-.015em;margin:0 0 6px;text-wrap:balance}
+h3{font-size:17px;margin:0 0 4px;line-height:1.3}
+p{margin:0 0 10px}
+.tool{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:clamp(18px,3vw,40px);align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.lbl{font-size:14px;font-weight:600;margin:0 0 8px;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip{font:inherit;font-size:15px;min-height:44px;padding:8px 14px;border-radius:22px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.chip:hover{border-color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible,.step:focus-visible,.btn:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+.trow:first-of-type{border-top:0}
+.tname{font-size:15px;line-height:1.3}
+.stepper{display:flex;align-items:center;gap:4px}
+.step{font:inherit;font-size:20px;width:40px;height:40px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;line-height:1}
+.step:hover{border-color:var(--ink)}
+.hv{width:44px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.btn{font:inherit;font-size:15px;min-height:44px;padding:8px 14px;margin-top:14px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.note{font-size:13px;color:var(--soft);margin-top:10px}
+.verdict{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 20px;align-items:end;margin-bottom:18px}
+.big{font-size:clamp(56px,8vw,88px);font-weight:700;line-height:.9;letter-spacing:-.03em;color:var(--brick);white-space:nowrap}
+.big small{font-size:.32em;letter-spacing:0;margin-left:4px;color:var(--ink)}
+.vt{font-size:clamp(19px,2vw,23px);line-height:1.25;font-weight:600;margin:0;text-wrap:balance}
+.vs{grid-column:1/-1;color:var(--soft);font-size:15px;margin:0}
+.ledger{border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);padding:6px 0;margin-bottom:22px}
+.lr{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr) 4.2em;gap:12px;align-items:center;padding:7px 0}
+.ln{font-size:15px;line-height:1.25}
+.track{height:22px;background:var(--stone);border-radius:3px;overflow:hidden}
+.fill{height:100%;background:var(--bar);border-radius:3px;transition:width .35s ease}
+.lr.top1 .fill{background:var(--brick)}
+.lr.top1 .ln{font-weight:700}
+.lh{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.lsum{display:flex;justify-content:space-between;gap:12px;padding-top:8px;border-top:1px solid var(--line);font-size:15px;color:var(--soft)}
+.lsum b{color:var(--ink);white-space:nowrap}
+.plan{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(16px,2.5vw,32px);align-items:start}
+.fixbox{background:var(--brickbg);border-radius:10px;padding:18px}
+.fixbox ul{margin:8px 0 12px;padding-left:20px}
+.fixbox li{margin-bottom:6px}
+.leave{font-size:15px;border-top:1px solid color-mix(in srgb,var(--brick) 35%,transparent);padding-top:10px;margin:0}
+.day{list-style:none;margin:0;padding:0}
+.day li{display:grid;grid-template-columns:4.6em minmax(0,1fr);gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.day li:first-child{border-top:0}
+.tm{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.2}
+.day b{display:block;font-size:16px}
+.day span{font-size:15px;color:var(--soft)}
+.proof{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:clamp(16px,2.5vw,28px);margin-top:20px}
+.proof article{border-top:2px solid var(--ink);padding-top:12px}
+.proof p{font-size:15px}
+.proof a{color:var(--brick)}
+.stat{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:4px 0 8px;white-space:nowrap}
+.stone{background:var(--stone)}
+.work{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:clamp(20px,3vw,48px);align-items:start}
+.wk{list-style:none;margin:0;padding:0;counter-reset:w}
+.wk li{display:grid;grid-template-columns:5.5em minmax(0,1fr);gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.wk li:first-child{border-top:0}
+.wk .mo{font-weight:700;white-space:nowrap}
+.wk span{display:block;font-size:15px;color:var(--soft)}
+footer{font-size:15px}
+footer a{color:var(--ink)}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 32px}
+@media(max-width:900px){.plan{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:760px){.tool{grid-template-columns:minmax(0,1fr)}.result{order:-1}.work{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){.lr{grid-template-columns:minmax(0,1fr) 3.8em;gap:4px 10px}.lr .track{grid-column:1/-1;grid-row:2}.verdict{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.fill{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="band top">
+  <div class="wrap">
+    <p class="who"><b>Hasan Arslan</b>, applying to be an OpenWorks partner in Boston</p>
+    <h1>What eats your week? We fix it together in one day.</h1>
+    <p class="lede">Pick your kind of business. Set the hours each task takes in a normal week. You will see the biggest time-eater and the exact plan for our community day.</p>
+  </div>
+</header>
+
+<main>
+<section class="band" aria-label="Community day planner">
+  <div class="wrap tool">
+    <div class="panel" id="controls">
+      <span class="lbl" id="bizlbl">Your business</span>
+      <div class="chips" id="biz" role="group" aria-labelledby="bizlbl"></div>
+      <span class="lbl">Hours per week on each task</span>
+      <div id="tasks"></div>
+      <button class="btn" id="reset" type="button">Reset to sample week</button>
+      <p class="note">Sample weeks are rough examples, not real client data. Change them to match yours.</p>
+    </div>
+
+    <div class="result" aria-live="polite">
+      <div class="verdict">
+        <div class="big" id="bigH">0<small>h a week</small></div>
+        <p class="vt" id="vTitle"></p>
+        <p class="vs" id="vSub"></p>
+      </div>
+      <div class="ledger" id="ledger"></div>
+
+      <div class="plan">
+        <div class="fixbox">
+          <h3 id="fixTitle"></h3>
+          <ul id="fixSteps"></ul>
+          <p class="leave" id="fixLeave"></p>
+        </div>
+        <div>
+          <h3>Our community day</h3>
+          <ol class="day" id="day"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band stone">
+  <div class="wrap">
+    <h2>I build things that people actually use</h2>
+    <p class="lede">I have taught at Suffolk University in Boston since 2004. Today I am Chief AI Officer at the Sawyer Business School. My PhD is in operations management from MIT Sloan, so ordering, scheduling and the flow of a small shop are home ground for me.</p>
+    <div class="proof">
+      <article>
+        <h3>Rambot</h3>
+        <p class="stat">1 chatbot for all</p>
+        <p>Two undergrads told me Suffolk had no chatbot and students could not find answers. I built one with a colleague. It runs only on public content, with no login and no student records. It now also answers graduate program questions and is in review with university IT to go live.</p>
+      </article>
+      <article>
+        <h3>ClassPulse</h3>
+        <p class="stat">High school to grad class</p>
+        <p>I helped a Wellesley High School student turn her idea into a working AI classroom app. I am piloting it in my graduate course this fall. <a href="https://sites.suffolk.edu/sail/2026/10/27/the-question-nobody-asked/">Read her story</a>.</p>
+      </article>
+      <article>
+        <h3>SAIL Framework</h3>
+        <p class="stat">13,600 shares</p>
+        <p>I co-created SAIL, our framework for teaching AI with judgment and people skills. It won a 2025 Eduventures Innovation Award. Our AACSB Insights article on it passed 13,600 shares.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap work">
+    <div>
+      <h2>Four days a month, plus one workshop</h2>
+      <p>Each community day goes to one business and one real task. The monthly workshop is open to anyone and stays practical. Owners bring their own laptop and leave with something that works.</p>
+      <p class="note">Workshop topics below are a first plan.</p>
+    </div>
+    <ol class="wk" id="wk"></ol>
+  </div>
+</section>
+</main>
+
+<footer class="band stone">
+  <div class="wrap foot">
+    <p>Hasan Arslan, Associate Professor and Chief AI Officer, Sawyer Business School, Suffolk University, Boston</p>
+    <p>harslan@suffolk.edu<br><a href="https://www.linkedin.com/in/hasan-arslan-b3b61a2/">LinkedIn</a></p>
+  </div>
+</footer>
+
+<script>
+{
+const T={
+  faq:{n:"Answering the same customer questions",cut:.6,
+    title:"A question helper that answers for you",
+    steps:["We list the 20 questions you hear most and write your best answers in your own words.","We turn them into an AI helper for your website or messages, with a clear handoff to you when it is unsure.","We test it on last week's real questions until you trust it."],
+    leave:"You leave with a helper that answers the easy questions, and a page you can edit when hours or prices change."},
+  inv:{n:"Ordering and inventory",cut:.5,
+    title:"A reorder sheet that tells you what to buy",
+    steps:["We look at what you sold and what you ran out of last month.","We build a simple sheet with a reorder point for each item, and AI to read supplier invoices for you.","We set a 10-minute weekly routine to check it before you place orders."],
+    leave:"You leave with one sheet that flags what to order, so you stop guessing and stop running out."},
+  sched:{n:"Staff scheduling",cut:.5,
+    title:"A weekly schedule that mostly builds itself",
+    steps:["We write down your rules: who can work when, busy hours, and how many people each shift needs.","We build a template and use AI to draft next week's schedule from those rules.","We add a simple way for staff to swap shifts without texting you."],
+    leave:"You leave with a schedule you review in minutes, not one you build from scratch every week."},
+  social:{n:"Social media posts",cut:.6,
+    title:"A month of posts in one sitting",
+    steps:["We find your voice from your best past posts and photos.","We use AI to draft a month of posts around your real events, specials and seasons.","We schedule them, so posting stops being a daily chore."],
+    leave:"You leave with a month of posts ready to go, and a simple routine to repeat it next month."},
+  books:{n:"Receipts, bookkeeping and invoices",cut:.4,
+    title:"Receipts and invoices sorted without the shoebox",
+    steps:["We set up one place where every receipt photo and invoice goes.","We use AI to read and sort them into the categories your accountant wants.","We make a short monthly checklist so the books stay clean."],
+    leave:"You leave with a tidy monthly folder your accountant can use, and less weekend paperwork."},
+  reviews:{n:"Online reviews and replies",cut:.6,
+    title:"Thoughtful review replies in a few minutes",
+    steps:["We gather your recent reviews in one place.","We build a reply helper that sounds like you, warm with fans and calm with complaints.","We turn repeat complaints into one fix you can make in the shop."],
+    leave:"You leave with a reply habit that takes minutes, plus a list of what customers keep asking you to fix."},
+  quotes:{n:"Quotes and estimates",cut:.5,
+    title:"Fast, clear quotes from your own price list",
+    steps:["We put your prices, materials and typical jobs into one sheet.","We use AI to turn a customer's notes or photos into a draft quote you check.","We add a clean template so every quote looks professional."],
+    leave:"You leave with quotes in minutes instead of evenings, and fewer jobs lost to slow replies."},
+  booking:{n:"Booking, reminders and no-shows",cut:.5,
+    title:"Bookings that remind people for you",
+    steps:["We look at how bookings come in today and where people drop off.","We set up online booking with automatic reminders and an easy reschedule link.","We write a kind, clear policy for late cancels."],
+    leave:"You leave with fewer phone calls, fewer no-shows and a calendar that fills itself."},
+  grants:{n:"Grant reports and donor updates",cut:.5,
+    title:"Reports that write their first draft",
+    steps:["We gather your program numbers and stories in one simple tracker.","We use AI to draft grant reports and donor updates from it, in your voice.","We set a monthly 30-minute update so reports are never a scramble."],
+    leave:"You leave with a tracker and drafts that turn report week into report hour."}
+};
+const B=[
+  {id:"cafe",n:"Cafe or bakery",h:{inv:6,faq:3,sched:3,social:3,books:3,reviews:1}},
+  {id:"rest",n:"Restaurant",h:{inv:7,sched:4,faq:4,reviews:2,social:2,books:3}},
+  {id:"salon",n:"Salon or barber",h:{booking:6,faq:3,social:3,sched:2,books:2,reviews:1}},
+  {id:"shop",n:"Retail shop",h:{inv:5,social:4,faq:3,books:3,sched:2,reviews:1}},
+  {id:"trade",n:"Contractor",h:{quotes:7,faq:3,books:4,booking:3,reviews:1,social:1}},
+  {id:"np",n:"Nonprofit",h:{grants:7,social:3,faq:3,books:3,sched:2}}
+];
+const W=[
+  ["Month 1","AI that answers your customers","Build a simple question helper for your website."],
+  ["Month 2","Never run out again","A reorder sheet with AI that reads your invoices."],
+  ["Month 3","A month of posts in an hour","Find your voice and plan posts that sound like you."],
+  ["Month 4","Use AI safely with customer data","What to share, what never to share, and simple settings."]
+];
+const DAY=t=>[
+  ["9:00","Listen first","Walk me through a normal week. Where does the time really go?"],
+  ["10:00","Map the task",'We draw every step of "'+t.n.toLowerCase()+'" on one page.'],
+  ["11:00","Build version one",t.title+"."],
+  ["12:30","Lunch on the block","A short break, and I meet the people who do the work."],
+  ["1:30","Test on real cases","We run it on last week's real work and fix what breaks."],
+  ["3:00","You drive","You run it alone while I watch and take notes."],
+  ["4:00","One-page guide","Plain steps you can follow, so it keeps working after I leave."],
+  ["4:30","Next step","We agree on a check-in and the next thing worth fixing."]
+];
+const $=id=>document.getElementById(id);
+let cur=B[0].id,hrs={};
+const load=id=>{cur=id;hrs={...B.find(b=>b.id===id).h}};
+const renderBiz=()=>{$("biz").innerHTML=B.map(b=>'<button type="button" class="chip" data-b="'+b.id+'" aria-pressed="'+(b.id===cur)+'">'+b.n+'</button>').join("")};
+const renderTasks=()=>{
+  $("tasks").innerHTML=Object.keys(hrs).map(k=>'<div class="trow"><span class="tname" id="tn-'+k+'">'+T[k].n+'</span><div class="stepper"><button type="button" class="step" data-k="'+k+'" data-d="-1" aria-label="Fewer hours for '+T[k].n+'">−</button><span class="hv" id="hv-'+k+'" aria-describedby="tn-'+k+'">'+hrs[k]+' h</span><button type="button" class="step" data-k="'+k+'" data-d="1" aria-label="More hours for '+T[k].n+'">+</button></div></div>').join("");
+};
+const render=()=>{
+  const ks=Object.keys(hrs).sort((a,b)=>hrs[b]-hrs[a]);
+  const total=ks.reduce((s,k)=>s+hrs[k],0);
+  const max=Math.max(1,...ks.map(k=>hrs[k]));
+  const top=ks[0],t=T[top],h=hrs[top];
+  const back=Math.round(h*t.cut*2)/2;
+  const yearDays=Math.round(back*50/8);
+  const biz=B.find(b=>b.id===cur).n.toLowerCase();
+  $("bigH").innerHTML=h+"<small>h a week</small>";
+  if(h===0){
+    $("vTitle").textContent="Add the hours your tasks take, and the biggest one will show here.";
+    $("vSub").textContent="";
+  }else{
+    $("vTitle").textContent=t.n+" is the biggest time-eater for this "+biz+".";
+    $("vSub").textContent="One community day on it could win back about "+back+" h a week. That is roughly "+yearDays+" full working days a year. A rough estimate, not a promise.";
+  }
+  $("ledger").innerHTML=ks.map((k,i)=>'<div class="lr'+(i===0&&h>0?" top1":"")+'"><span class="ln">'+T[k].n+'</span><div class="track"><div class="fill" style="width:'+(hrs[k]/max*100)+'%"></div></div><span class="lh">'+hrs[k]+' h</span></div>').join("")+'<div class="lsum"><span>All tasks above</span><b>'+total+' h a week</b></div>';
+  $("fixTitle").textContent=t.title;
+  $("fixSteps").innerHTML=t.steps.map(s=>"<li>"+s+"</li>").join("");
+  $("fixLeave").textContent=t.leave;
+  $("day").innerHTML=DAY(t).map(d=>'<li><span class="tm">'+d[0]+'</span><div><b>'+d[1]+'</b><span>'+d[2]+'</span></div></li>').join("");
+};
+$("wk").innerHTML=W.map(w=>'<li><span class="mo">'+w[0]+'</span><div><b>'+w[1]+'</b><span>'+w[2]+'</span></div></li>').join("");
+$("biz").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;load(b.dataset.b);renderBiz();renderTasks();render()});
+$("tasks").addEventListener("click",e=>{const b=e.target.closest(".step");if(!b)return;const k=b.dataset.k;hrs[k]=Math.max(0,Math.min(40,hrs[k]+Number(b.dataset.d)));$("hv-"+k).textContent=hrs[k]+" h";render()});
+$("reset").addEventListener("click",()=>{load(cur);renderTasks();render()});
+load(cur);renderBiz();renderTasks();render();
+}
+</script>
+</body>
+</html>
